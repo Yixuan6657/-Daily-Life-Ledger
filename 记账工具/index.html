@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>生活费小账本</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">¥</div>
+          <h1>生活费小账本</h1>
+        </div>
+        <div class="top-actions">
+          <button id="openEntryBtn" class="btn btn-primary" type="button" data-icon="plus">
+            <span>记一笔</span>
+          </button>
+          <button id="openSettingsBtn" class="icon-btn icon-btn-strong" type="button" data-icon="settings" aria-label="设置" title="设置"></button>
+        </div>
+      </header>
+
+      <main class="page">
+        <section class="summary-zone" aria-label="账本概览">
+          <div class="period-bar">
+            <button id="prevCycleBtn" class="icon-btn" type="button" data-icon="chevron-left" aria-label="上一周期"></button>
+            <div class="period-title">
+              <strong id="cycleLabel">--</strong>
+              <span id="cycleTag" class="period-tag"></span>
+            </div>
+            <button id="nextCycleBtn" class="icon-btn" type="button" data-icon="chevron-right" aria-label="下一周期"></button>
+          </div>
+
+          <div class="metrics">
+            <div class="metric metric-primary">
+              <span class="metric-label">当前可用余额</span>
+              <strong id="balanceValue" class="metric-value">¥0.00</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">本周期生活费</span>
+              <strong id="allowanceValue" class="metric-value">¥0.00</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">本周期已花</span>
+              <strong id="spentValue" class="metric-value">¥0.00</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section" aria-labelledby="categoryTitle">
+          <div class="section-head">
+            <h2 id="categoryTitle">本周期分类排行</h2>
+          </div>
+          <div id="categoryStats" class="category-stats"></div>
+        </section>
+
+        <section class="content-section" aria-labelledby="recordsTitle">
+          <div class="section-head">
+            <h2 id="recordsTitle">账单明细</h2>
+          </div>
+          <div id="transactionList" class="transaction-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="entryOverlay" class="overlay" hidden>
+      <section class="modal entry-modal" role="dialog" aria-modal="true" aria-labelledby="entryTitle">
+        <div class="modal-head">
+          <h2 id="entryTitle">记一笔</h2>
+          <button id="closeEntryBtn" class="icon-btn" type="button" data-icon="x" aria-label="关闭"></button>
+        </div>
+
+        <div class="segmented" id="entryTypeSwitch" aria-label="记录类型">
+          <button type="button" data-type="expense" class="active" aria-selected="true">支出</button>
+          <button type="button" data-type="allowance" aria-selected="false">生活费到账</button>
+        </div>
+
+        <form id="entryForm" novalidate>
+          <label class="field">
+            <span class="field-label">金额</span>
+            <span class="money-input">
+              <span class="money-prefix">¥</span>
+              <input id="amountInput" name="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" />
+            </span>
+          </label>
+
+          <div id="categoryField" class="field">
+            <span class="field-label">分类</span>
+            <div id="categoryPicker" class="category-picker"></div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span class="field-label">日期</span>
+              <input id="dateInput" name="date" type="date" />
+            </label>
+            <label class="field">
+              <span class="field-label">备注</span>
+              <input id="noteInput" name="note" type="text" autocomplete="off" maxlength="60" placeholder="选填" />
+            </label>
+          </div>
+
+          <div id="deleteEntryWrap" class="entry-delete" hidden>
+            <button id="deleteEntryBtn" class="text-danger" type="button">删除这条记录</button>
+          </div>
+
+          <div class="modal-actions">
+            <button id="cancelEntryBtn" class="btn btn-secondary" type="button">取消</button>
+            <button id="saveEntryBtn" class="btn btn-primary" type="submit">保存</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div id="settingsOverlay" class="overlay" hidden>
+      <section class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-head">
+          <h2 id="settingsTitle">设置</h2>
+          <button id="closeSettingsBtn" class="icon-btn" type="button" data-icon="x" aria-label="关闭"></button>
+        </div>
+
+        <form id="settingsForm">
+          <section class="settings-group">
+            <h3>初始总余额</h3>
+            <label class="money-input">
+              <span class="money-prefix">¥</span>
+              <input id="initialBalanceInput" name="initialBalance" type="text" inputmode="decimal" autocomplete="off" />
+            </label>
+          </section>
+
+          <section class="settings-group">
+            <h3>生活费周期</h3>
+            <label class="number-row" for="cycleStartDayInput">
+              <span>起始日</span>
+              <select id="cycleStartDayInput" name="cycleStartDay"></select>
+              <span>号</span>
+            </label>
+          </section>
+
+          <section class="settings-group">
+            <h3>分类管理</h3>
+            <div id="categoryManager" class="category-manager"></div>
+            <div class="inline-add">
+              <input id="newCategoryInput" name="newCategory" type="text" maxlength="6" autocomplete="off" placeholder="新分类名" />
+              <button id="addCategoryBtn" class="btn btn-secondary" type="button" data-icon="plus">添加</button>
+            </div>
+          </section>
+
+          <section class="settings-group">
+            <h3>数据备份</h3>
+            <div class="backup-actions">
+              <button id="exportBtn" class="btn btn-secondary" type="button" data-icon="download">导出备份</button>
+              <button id="importBtn" class="btn btn-secondary" type="button" data-icon="upload">导入备份</button>
+              <input id="importFile" type="file" accept=".json,application/json" hidden />
+            </div>
+          </section>
+
+          <div class="modal-actions">
+            <button class="btn btn-secondary" type="button" data-close-settings>取消</button>
+            <button class="btn btn-primary" type="submit">保存设置</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div id="onboardingOverlay" class="overlay" hidden>
+      <section class="modal onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+        <div class="onboarding-mark" aria-hidden="true">¥</div>
+        <h2 id="onboardingTitle">开始生活费账本</h2>
+        <form id="onboardingForm">
+          <label class="field">
+            <span class="field-label">目前手上大约还有多少钱</span>
+            <span class="money-input">
+              <span class="money-prefix">¥</span>
+              <input id="onboardBalanceInput" name="balance" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" />
+            </span>
+          </label>
+
+          <label class="field" for="onboardCycleDayInput">
+            <span class="field-label">生活费周期从每月几号开始</span>
+            <select id="onboardCycleDayInput" name="cycleStartDay"></select>
+          </label>
+
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="submit">开始记账</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
